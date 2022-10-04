@@ -1,7 +1,3 @@
-const jwt = require('jsonwebtoken')
-const jwtSecret = process.env.JWT_SECRET
-const connection = require('../db/mysql')
-
 const validateReg = async (req, res, next) => {
     if(!req.body.username.length < 5 ){
         return res.status(400).send({

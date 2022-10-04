@@ -1,9 +1,10 @@
 const express = require('express')
 const router = new express.Router()
 const connection = require('../db/mysql')
+const validateReg = require('../../middleware/validateReg')
 
 //register new user
-router.post('/v1/register', function (req,res) {
+router.post('/v1/register', validateReg, function (req,res) {
     var user = {
         userId: uuid(),
         username: req.body.username,
