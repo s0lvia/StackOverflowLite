@@ -1,57 +1,57 @@
 const express = require('express')
 const router = new express.Router()
-const connection = require('../db/mysql')
-const validateReg = require('../../middleware/validateReg')
-const auth = require('../../middleware/auth')
+const connection = require('../../db/mysql')
+const userMiddleware = require('../../middleware/validateReg')
 const bcrypt = require('bcryptjs');
-const uuid = require('uuid');
 const jwt = require('jsonwebtoken');
 
-//register new user
-router.post('/v1/register', validateReg, auth, function (req,res) {
+router.post('/register', userMiddleware.validateReg, async function (req,res) {
+    const hashedPassword = await bcrypt.hash(req.body.password,10);
     var user = {
-        userId: uuid(),
         username: req.body.username,
-        email: req.body.email
-    };
-
-    connection.query(`SELECT * FROM users WHERE LOWER(username)=LOWER(${connection.escape(
-        user.username
-    )}));`,
+        email: req.body.email,
+        password: hashedPassword
+    }
+    connection.query(`SELECT * FROM users WHERE LOWER(email)=LOWER(${connection.escape(user.email)})`,
     (error, result) => {
         if(result.length){
             return res.status(409).send({
-                message:'This username is already in use!'
+                message:'This email is already in use!'
             });
-        }else {
-            bcrypt.hash(req.body.passsword,10, (error,hash) =>{
-                if(error){
-                    return res.status(500).send({
-                        message: error
-                    });
-                }
-                else {
-                    connection.query(
-                        `INSERT INTO users (userId, username, password, email) VALUES ('${uuid.v4()}', ${connection.escape(
-                            req.body.username
-                          )}, ${connection.escape(hash)}, ${connection.escape(req.body.email)})`,
-                          function (error, result) {
-                            if (error) {
-    
-                              return res.status(400).send({
-                                message: error
-                              });
-                            }
-                            return res.status(201).send({
-                              message: 'Registered!',
-                              username: req.body.username,
-                              email: req.boy.email
-                            });
-                          }
-                    );
-                }
-            })
         }
-    }
+   
+    
+    connection.query(`SELECT * FROM users WHERE LOWER(username)=LOWER(${connection.escape(user.username)}) OR LOWER(email)=LOWER(${connection.escape(user.email)})`,
+        async (error, result) => {
+            if(result.length){
+                return res.status(409).send({
+                    message:'This username is already in use!'
+                });
+            }else {
+                connection.query(
+                    `INSERT INTO users (username, password, email) VALUES (${connection.escape(user.username)}, ${connection.escape(user.password)}, ${connection.escape(user.email)})`,
+                      function (error, result) {
+                        console.log(result)
+                        if (error) {
+
+                          return res.status(400).send({
+                            message: "Make sure all fields are filled."
+                          });
+                        }
+                        return res.status(201).send({
+                          
+                          message: 'Registered!',
+                          user:{
+                            username: result.username,
+                            email: result.email
+                          }
+                        });
+                      }
+                );
+            }
+        }
     );
 })
+});
+
+module.exports = router
