@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken')
 const jwtSecret = process.env.JWT_SECRET
 
 module.exports = {
@@ -31,7 +30,7 @@ validateReg :(req, res, next) => {
         req.userData = decoded;
         next();
     }catch (error) {
-        res.status(401).send({message: 'Authentication failed. Please authenticate.'})
+        res.status(401).send({message: 'Your session is not valid'})
     }
     }
 }

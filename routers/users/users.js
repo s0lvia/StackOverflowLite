@@ -4,9 +4,10 @@ const connection = require('../../db/mysql')
 const userMiddleware = require('../../middleware/validateReg')
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const validateReg = require('../../middleware/validateReg');
 const jwtSecret = process.env.JWT_SECRET
 
-router.post('/register', userMiddleware.validateReg, async function (req,res) {
+router.post('/api/v1/register', userMiddleware.validateReg, async function (req,res) {
     const hashedPassword = await bcrypt.hash(req.body.password,10);
     var user = {
         username: req.body.username,
@@ -54,7 +55,7 @@ router.post('/register', userMiddleware.validateReg, async function (req,res) {
 })
 });
 
-router.post('/login',  async (req, res, next) => {
+router.post('/api/v1/login',  async (req, res, next) => {
     const query =  `SELECT * FROM users WHERE LOWER(username) = LOWER(${connection.escape(req.body.username)}) OR LOWER(email) = LOWER(${connection.escape(req.body.username)})`
     connection.query(query, (error, result) => {
         if(error){
@@ -90,12 +91,16 @@ router.post('/login',  async (req, res, next) => {
                         expiresIn:'1d'
                     }
                     );
-            
-                    return await res.status(200).send({
+                    connection.query(
+                        `UPDATE users SET tokens = "${token}" WHERE id=${result[0].id}`
+                    )
+
+                    return res.status(200).send({
                         message: "Logged in!",
                         token,
                         user: result[0]
                     });
+
                 }
                 return res.status(401).send({
                     message:"Username/Email or password is incorrect"
@@ -104,5 +109,19 @@ router.post('/login',  async (req, res, next) => {
         )
     })
 });
+
+router.post('/api/v1/logout', userMiddleware.auth, async(req, res) => {
+    try {
+        req.user
+
+    }catch (error) {
+
+    }
+});
+
+router.get('/api/v1/secret-route', userMiddleware.auth, (req, res) => {
+    console.log(hey);
+    res.send('This is the secret content. Only logged in users can see that!');
+  });
 
 module.exports = router
