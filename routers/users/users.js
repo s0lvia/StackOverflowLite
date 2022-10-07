@@ -1,10 +1,9 @@
 const express = require('express')
 const router = new express.Router()
 const connection = require('../../db/mysql')
-const userMiddleware = require('../../middleware/validateReg')
+const userMiddleware = require('../../middleware/validation')
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const validateReg = require('../../middleware/validateReg');
 const jwtSecret = process.env.JWT_SECRET
 
 router.post('/api/v1/register', userMiddleware.validateReg, async function (req,res) {
