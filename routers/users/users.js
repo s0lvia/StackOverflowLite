@@ -92,7 +92,7 @@ router.post('/api/v1/login',  async (req, res, next) => {
                     }
                     );
                     connection.query(
-                        `UPDATE users SET tokens = "${token}" WHERE id=${result[0].id}`
+                        `UPDATE users SET tokens = CONCAT('["${token}"]') WHERE id=${result[0].id}`
                     )
 
                     return res.status(200).send({
@@ -110,17 +110,35 @@ router.post('/api/v1/login',  async (req, res, next) => {
     })
 });
 
-router.post('/api/v1/logout', userMiddleware.auth, async(req, res) => {
+router.post('/api/v1/logout', userMiddleware.auth, (req, res) => {
+    const user = req.userData;
     try {
-        req.user
+        connection.query(`SELECT * FROM users WHERE id=${user.userId}`, (error, result) =>{
+            if(error) {
+                return res.status(404).send({
+                    message:"User not found"
+                });
+            }
+            if(result){
+                const userToken = result[0].tokens;
+                const emptyToken =  userToken.replace(userToken,"[]")
+                connection.query(
+                    `UPDATE users SET tokens = '["${emptyToken}"]' WHERE id=${result[0].id}`
+                )
 
+                return res.status(200).send({
+                    message: "Logged out!"
+                });
+            }
+           
+        })
+    
     }catch (error) {
-
+        res.sendStatus(500)
     }
 });
 
 router.get('/api/v1/secret-route', userMiddleware.auth, (req, res) => {
-    console.log(hey);
     res.send('This is the secret content. Only logged in users can see that!');
   });
 

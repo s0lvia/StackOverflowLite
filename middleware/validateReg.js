@@ -1,4 +1,5 @@
 const jwtSecret = process.env.JWT_SECRET
+const jwt = require('jsonwebtoken')
 
 module.exports = {
 validateReg :(req, res, next) => {
@@ -23,7 +24,7 @@ validateReg :(req, res, next) => {
     next();
 },
 
- auth : async (req, res, next) => {
+ auth : (req, res, next) => {
     try{
         const token = req.header('Authorization').replace('Bearer ','')
         const decoded = jwt.verify(token, jwtSecret)
