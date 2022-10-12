@@ -149,7 +149,6 @@ router.put('/api/v1/questions/:id',  userMiddleware.auth, userMiddleware.validat
 
 
 router.delete('/api/v1/questions/:id',  userMiddleware.auth, async (req, res) => {
-    var updatedQuestion = req.body.question
     var currentUser = req.userData.userId
     const query = `DELETE FROM questions WHERE id = ${req.params.id} AND userId = ${currentUser}`
     try {
